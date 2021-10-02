@@ -1,5 +1,7 @@
 package com.chionura.packet;
 
+import com.chionura.utils.DataUtils;
+
 /**
  * RPC 协议附加信息，使用固定长度，用于指定随后的数据包信息，
  * 包括魔数、数据包长度和数据包编码类型。
@@ -37,6 +39,24 @@ public class Option {
         this.magicNum = magicNum;
         this.length = length;
         this.codecType = codecType;
+    }
+
+    /**
+     * 将 magicNum 转换为 byte 数组，用于数据传输。
+     *
+     * @return 转化后的 byte 数组。
+     */
+    public byte[] getMagicNumBytes() {
+        return DataUtils.intToBytes(this.getMagicNum());
+    }
+
+    /**
+     * 将 packet 长度转换为 byte 数组，用于数据传输。
+     *
+     * @return 转化后的 byte 数组。
+     */
+    public byte[] getLengthBytes() {
+        return DataUtils.intToBytes(this.getLength());
     }
 
     public int getMagicNum() {

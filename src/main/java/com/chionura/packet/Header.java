@@ -55,7 +55,7 @@ public class Header {
         return args;
     }
 
-    public void setArgs(Object[] args) {
+    public void setArgs(Object ...args) {
         this.args = args;
     }
 

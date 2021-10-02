@@ -15,12 +15,12 @@ public class CodecBuilder {
      * Codec 类型与实例 Map。
      * 其中 map 的 key 为 编解码器的类型，value 为实际的编解码器。
      */
-    private static Map<Integer, Codec> codecMap;
+    private static Map<Byte, Codec> codecMap;
 
     /**
      * 构造 Codec Map 并初始添加 JSON 编解码器.
      */
-    public CodecBuilder() {
+    static {
         codecMap = new HashMap<>();
         codecMap.put(Global.APPLICATIONJSON, new JSONCodec());
     }
@@ -31,7 +31,7 @@ public class CodecBuilder {
      * @param type 解码器类型。
      * @return 实际编解码器对象。
      */
-    public static Codec buildCodec(Integer type) {
+    public static Codec buildCodec(Byte type) {
         return codecMap.get(type);
     }
 
@@ -41,7 +41,7 @@ public class CodecBuilder {
      * @param type 解码器类型。
      * @param codec 实际编解码器对象。
      */
-    public static void addCodec(Integer type, Codec codec) {
+    public static void addCodec(Byte type, Codec codec) {
         codecMap.putIfAbsent(type, codec);
     }
 }

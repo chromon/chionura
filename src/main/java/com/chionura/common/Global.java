@@ -11,7 +11,12 @@ public class Global {
     public static final int OPTIONLENGTH = 9;
 
     /**
+     * Magic Num.
+     */
+    public static final int MAGICNUM = 0xacebabe;
+
+    /**
      * JSON 编码格式。
      */
-    public static final int APPLICATIONJSON = 1;
+    public static final Byte APPLICATIONJSON = 1;
 }
