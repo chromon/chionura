@@ -27,10 +27,14 @@ public class NIOClient {
      */
     private Selector selector;
 
-    // 打开 socket 通道
+    /**
+     * 打开 socket 通道
+     */
     private SocketChannel socketChannel;
 
-    // 日志
+    /**
+     * 日志
+     */
     private Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
@@ -139,28 +143,34 @@ public class NIOClient {
                 // 根据 ByteBuffer 中读取的数据构造 Option 实例。
                 Option option = readOption(readBuffer.array());
 
-                // 根据获取的数据包长度读取数据包
-                ByteBuffer buff = ByteBuffer.allocate(option.getLength());
-                int packetCount = socketChannel.read(buff);
+                if (option.getMagicNum() != Global.MAGICNUM) {
+                    log.severe("服务端魔数错误，调用失败。");
+                } else {
+                    // 根据获取的数据包长度读取数据包
+                    ByteBuffer buff = ByteBuffer.allocate(option.getLength());
+                    int packetCount = socketChannel.read(buff);
 
-                System.out.println("packetCount=" + packetCount);
+                    System.out.println("packetCount=" + packetCount);
 
-                if (packetCount == -1) {
-                    socketChannel.socket().close();
-                    socketChannel.close();
-                    selectionKey.cancel();
-                    log.warning("当前客户端连接已关闭");
+                    if (packetCount == -1) {
+                        socketChannel.socket().close();
+                        socketChannel.close();
+                        selectionKey.cancel();
+                        log.warning("当前客户端连接已关闭");
+                        return;
+                    }
+
+                    System.out.println("s2 = " + option.getLength());
+                    // 根据 Option 中的编码解码 packet 数据。
+                    Codec codec = CodecBuilder.buildCodec(option.getCodecType());
+                    Packet packet = codec.decodePacket(buff.array());
+
+                    System.out.println("body:" + packet.getBody());
+
+                    System.out.println("服务器端接受客户端数据--:" + option.getMagicNum() + "-" + option.getLength() + "=" + new String(buff.array()));
                 }
 
-                System.out.println("s2 = " + option.getLength());
-                // 根据 Option 中的编码解码 packet 数据。
-                Codec codec = CodecBuilder.buildCodec(option.getCodecType());
-                Packet packet = codec.decodePacket(buff.array());
-
-                System.out.println("body:" + packet.getBody());
-
-                System.out.println("服务器端接受客户端数据--:" + option.getMagicNum() + "-" + option.getLength() + "=" + new String(buff.array()));
-                socketChannel.register(selector, SelectionKey.OP_WRITE);
+               socketChannel.register(selector, SelectionKey.OP_WRITE);
             }
         } catch (IOException e) {
             socketChannel.socket().close();
