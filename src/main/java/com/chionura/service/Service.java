@@ -1,8 +1,7 @@
 package com.chionura.service;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * 服务端注册的服务。
@@ -20,18 +19,12 @@ public class Service {
     private Class<?> clazz;
 
     /**
-     * 服务所包含方法
-     */
-    private Map<String, Method> methodMap;
-
-    /**
      * 构造服务
      *
      * @param serviceName 服务名
      */
     public Service(String serviceName) {
         this.serviceName = serviceName;
-        this.methodMap = new HashMap<>();
     }
 
     /**
@@ -40,7 +33,7 @@ public class Service {
      * @return 是否是可用的服务
      */
     public boolean classIsAvailable() {
-        boolean available = true;
+        boolean available;
         try {
             available = null != Class.forName(this.serviceName);
         } catch (Exception e) {
@@ -58,27 +51,62 @@ public class Service {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        this.getMethodsMap();
-    }
-
-    /**
-     * 根据服务 Class 构建服务方法 Map。
-     */
-    private void getMethodsMap() {
-        Method[] methods = this.clazz.getDeclaredMethods();
-        for (Method method : methods) {
-            methodMap.put(method.getName(), method);
-        }
     }
 
     /**
      * 根据方法名查询服务方法对象。
      *
      * @param methodName 待查询方法名。
+     * @param argsType 参数类型。
      * @return Method 实例对象，如果不存在返回 null。
      */
-    public Method getMethod(String methodName) {
-        return this.methodMap.get(methodName);
+    private Method getMethod(String methodName, Class<?>... argsType) {
+        Method method = null;
+        try {
+            method = this.clazz.getDeclaredMethod(methodName, argsType);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return method;
+    }
+
+    /**
+     * 根据方法名和参数列表调用方法并返回。
+     *
+     * @param methodName 方法名
+     * @param args 参数列表
+     * @return 方法返回值
+     */
+    public Object call(String methodName, Object... args) {
+        Object result = null;
+        try {
+            Class<?>[] argsType = this.getArgsType(args);
+
+            Object obj = this.clazz.getDeclaredConstructor().newInstance();
+            Method method = this.getMethod(methodName, argsType);
+            result = method.invoke(obj, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * 根据参数获取参数类型。
+     *
+     * @param args 可变参数对象。
+     * @return 参数类型数组。
+     */
+    private Class<?>[] getArgsType(Object... args) {
+        List<Object> argsList = List.of(args);
+
+        // 完整实现
+        // List<Class<?>> classList = argsList.stream()
+        //         .map(arg -> arg.getClass()).collect(Collectors.toList());
+        // Class<?>[] objects = classList.toArray(new Class<?>[classList.size()]);
+
+        return argsList.stream()
+                .map(Object::getClass).toArray(Class<?>[]::new);
     }
 
     /**
@@ -88,5 +116,14 @@ public class Service {
      */
     public String getServiceName() {
         return serviceName;
+    }
+
+    public static void main(String[] args) {
+        Service service = new Service("com.chionura.demo.ServiceDemo");
+        if (service.classIsAvailable()) {
+            service.newService();
+        }
+
+        System.out.println(service.call("print", "abc", 123));
     }
 }

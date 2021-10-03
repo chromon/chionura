@@ -3,8 +3,10 @@ package com.chionura.server;
 import com.chionura.codec.Codec;
 import com.chionura.codec.CodecBuilder;
 import com.chionura.common.Global;
+import com.chionura.packet.Header;
 import com.chionura.packet.Option;
 import com.chionura.packet.Packet;
+import com.chionura.service.ServiceRegister;
 import com.chionura.utils.DataUtils;
 
 import java.io.IOException;
@@ -177,7 +179,7 @@ public class NIOServer {
 
                     System.out.println("服务器端接受客户端数据--:"+ opt.getMagicNum() + "-" + opt.getLength() + "=" + new String(buff.array()));
 
-                    handleReq();
+                    handleReq(packet);
 
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                 }
@@ -207,7 +209,12 @@ public class NIOServer {
         return new Option(magicNum, packetLen, codecType);
     }
 
-    private Object handleReq() {
+    private Object handleReq(Packet packet) {
+
+        Header header = packet.getHeader();
+        String[] s = header.getServiceMethod().split(".");
+        ServiceRegister.findService(s[0]);
+
 
         // TODO 处理请求
         return null;

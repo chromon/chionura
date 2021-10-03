@@ -13,7 +13,6 @@ public class ServerDemo {
         if (service.classIsAvailable()) {
             service.newService();
         }
-        System.out.println(service.getMethod("print").getName());
 
         ServiceRegister.registerService(service);
 
