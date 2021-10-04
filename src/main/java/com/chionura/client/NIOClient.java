@@ -33,6 +33,11 @@ public class NIOClient {
     private SocketChannel socketChannel;
 
     /**
+     * 服务端返回结果
+     */
+    private Object result;
+
+    /**
      * 日志
      */
     private Logger log = Logger.getLogger(this.getClass().getName());
@@ -64,7 +69,7 @@ public class NIOClient {
      *
      * @throws IOException IO Exception
      */
-    public void call(Header header) throws IOException {
+    public Object call(Header header) throws IOException {
         // 判断一次 RPC 请求是否完成，包括发送和接收数据。
         boolean finished = true;
 
@@ -93,6 +98,7 @@ public class NIOClient {
             // 将已处理的事件移除。
             selectionKeys.clear();
         }
+        return result;
     }
 
     /**
@@ -150,8 +156,6 @@ public class NIOClient {
                     ByteBuffer buff = ByteBuffer.allocate(option.getLength());
                     int packetCount = socketChannel.read(buff);
 
-                    System.out.println("packetCount=" + packetCount);
-
                     if (packetCount == -1) {
                         socketChannel.socket().close();
                         socketChannel.close();
@@ -160,10 +164,11 @@ public class NIOClient {
                         return;
                     }
 
-                    System.out.println("s2 = " + option.getLength());
                     // 根据 Option 中的编码解码 packet 数据。
                     Codec codec = CodecBuilder.buildCodec(option.getCodecType());
                     Packet packet = codec.decodePacket(buff.array());
+
+                    handleResponse(packet);
 
                     System.out.println("body:" + packet.getBody());
 
@@ -193,11 +198,17 @@ public class NIOClient {
         int packetLen = DataUtils.byteArrayToInt(bufferBytes, 4, 8);
         // 读取编码类型，最后一个字节。
         byte codecType = bufferBytes[bufferBytes.length - 1];
-
-        System.out.println(magicNum + "===" + packetLen + "===" + codecType);
-
         return new Option(magicNum, packetLen, codecType);
     }
+
+    private void handleResponse(Packet packet) {
+        if (packet.getHeader().getError() != null) {
+            log.severe(packet.getHeader().getError());
+        } else {
+            result = packet.getBody();
+        }
+    }
+
 
     /**
      * 向服务端发送数据。
@@ -238,8 +249,6 @@ public class NIOClient {
         // 构造 Option
         Option opt = new Option(Global.MAGICNUM, codecBytes.length, Global.APPLICATIONJSON);
 
-        System.out.println(opt.getMagicNum());
-        System.out.println(opt.getLength());
         // 写入数据
         buffer.put(opt.getMagicNumBytes());
         buffer.put(opt.getLengthBytes());

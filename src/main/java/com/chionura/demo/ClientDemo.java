@@ -9,14 +9,16 @@ public class ClientDemo {
     public static void main(String[] args) {
 
         Header header = new Header();
-        header.setServiceMethod("Foo.Test");
-        header.setArgs("test", 1234, true);
+        header.setServiceMethod("com.chionura.demo.ServiceDemo.print1");
+        header.setArgs("abc", 123);
 
         NIOClient client;
         try {
             client = new NIOClient(9911);
-            client.call(header);
-            client.call(header);
+            Object result = client.call(header);
+            if (result != null) {
+                System.out.println(result);
+            }
             client.close();
         } catch (IOException e) {
             e.printStackTrace();

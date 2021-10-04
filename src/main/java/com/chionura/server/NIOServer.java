@@ -6,6 +6,7 @@ import com.chionura.common.Global;
 import com.chionura.packet.Header;
 import com.chionura.packet.Option;
 import com.chionura.packet.Packet;
+import com.chionura.service.Service;
 import com.chionura.service.ServiceRegister;
 import com.chionura.utils.DataUtils;
 
@@ -40,11 +41,6 @@ public class NIOServer {
      * 日志
      */
     private Logger log;
-
-    /**
-     * 错误信息
-     */
-    private String error;
 
     /**
      * 构造服务端通道，等待连接事件。
@@ -179,7 +175,8 @@ public class NIOServer {
 
                     System.out.println("服务器端接受客户端数据--:"+ opt.getMagicNum() + "-" + opt.getLength() + "=" + new String(buff.array()));
 
-                    handleReq(packet);
+                    // 处理调用请求
+                    handleRequest();
 
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                 }
@@ -209,17 +206,40 @@ public class NIOServer {
         return new Option(magicNum, packetLen, codecType);
     }
 
-    private Object handleReq(Packet packet) {
-
+    /**
+     * 处理服务方法调用请求。
+     */
+    private void handleRequest() {
         Header header = packet.getHeader();
-        String[] s = header.getServiceMethod().split(".");
-        ServiceRegister.findService(s[0]);
+        // 获取服务名和方法名
+        String serviceMethod = header.getServiceMethod();
+        String serviceName = serviceMethod.substring(0,
+                serviceMethod.lastIndexOf("."));
+        String methodName = serviceMethod.substring(
+                serviceMethod.lastIndexOf(".") + 1);
 
+        // 参数列表
+        Object[] args = header.getArgs();
+        Service service = ServiceRegister.findService(serviceName);
 
-        // TODO 处理请求
-        return null;
+        if (service == null) {
+            // 服务无效
+            packet.getHeader().setError("ERROR: RPC 服务 '" + serviceName + "' 不是有效的服务！");
+        } else {
+            if (!service.isMethodAvailable(methodName, args)) {
+                // 方法无效
+                packet.getHeader().setError("ERROR: RPC 服务方法 '" + methodName + "' 无效！");
+            } else {
+                if (args.length == 0) {
+                    // 无参方法
+                    packet.setBody(service.call(methodName));
+                } else {
+                    // 有参方法
+                    packet.setBody(service.call(methodName, args));
+                }
+            }
+        }
     }
-
 
     /**
      * Write 方法用于向客户端写入信息。
@@ -247,14 +267,6 @@ public class NIOServer {
      * @return 创建的 ByteBuffer
      */
     private ByteBuffer createWBuffer() {
-        // 构建请求 packet
-        if (error != null) {
-            packet.getHeader().setError(error);
-            error = null;
-        } else {
-            packet.setBody("这是一个返回 body。");
-        }
-
         // 将数据包进行编码
         Codec codec = CodecBuilder.buildCodec(Global.APPLICATIONJSON);
         byte[] codecBytes = codec.encodePacket(packet);
@@ -265,8 +277,6 @@ public class NIOServer {
         // 构造 Option
         Option opt = new Option(Global.MAGICNUM, codecBytes.length, Global.APPLICATIONJSON);
 
-        System.out.println(opt.getMagicNum());
-        System.out.println(opt.getLength());
         // 写入数据
         buffer.put(opt.getMagicNumBytes());
         buffer.put(opt.getLengthBytes());

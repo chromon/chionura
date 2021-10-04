@@ -2,6 +2,7 @@ package com.chionura.service;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * 服务端注册的服务。
@@ -65,9 +66,16 @@ public class Service {
         try {
             method = this.clazz.getDeclaredMethod(methodName, argsType);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            Logger log = Logger.getLogger("Service");
+            log.severe("java.lang.NoSuchMethodException:\n" + e.getMessage());
         }
         return method;
+    }
+
+    public boolean isMethodAvailable(String methodName, Object... args) {
+        Class<?>[] argsType = this.getArgsType(args);
+        Method method = this.getMethod(methodName, argsType);
+        return method != null;
     }
 
     /**
@@ -119,11 +127,17 @@ public class Service {
     }
 
     public static void main(String[] args) {
-        Service service = new Service("com.chionura.demo.ServiceDemo");
-        if (service.classIsAvailable()) {
-            service.newService();
-        }
+//        Service service = new Service("com.chionura.demo.ServiceDemo");
+//        if (service.classIsAvailable()) {
+//            service.newService();
+//        }
+//
+//        System.out.println(service.call("print", "abc", 123));
+        String serviceMethod = "abc.c.d.e";
+        String service = serviceMethod.substring(0, serviceMethod.lastIndexOf("."));
+        String method = serviceMethod.substring(serviceMethod.lastIndexOf(".") + 1);
 
-        System.out.println(service.call("print", "abc", 123));
+        System.out.println(service);
+        System.out.println(method);
     }
 }
