@@ -2,13 +2,14 @@ package com.chionura.server;
 
 import com.chionura.codec.Codec;
 import com.chionura.codec.CodecBuilder;
-import com.chionura.common.Global;
+import com.chionura.common.Constants;
 import com.chionura.packet.Header;
 import com.chionura.packet.Option;
 import com.chionura.packet.Packet;
 import com.chionura.service.Service;
 import com.chionura.service.ServiceRegister;
 import com.chionura.utils.DataUtils;
+import com.chionura.utils.TimeoutUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -139,7 +140,7 @@ public class NIOServer {
         try {
             // 返回为此键创建的通道。
             socketChannel = (SocketChannel) selectionKey.channel();
-            ByteBuffer readBuffer = ByteBuffer.allocate(Global.OPTIONLENGTH);
+            ByteBuffer readBuffer = ByteBuffer.allocate(Constants.OPTIONLENGTH);
 
             // 读取服务器发送来的数据到缓冲区中
             // 读取 option
@@ -153,7 +154,7 @@ public class NIOServer {
                 // 根据 ByteBuffer 中读取的数据构造 Option 实例。
                 Option opt = readOption(readBuffer.array());
 
-                if (opt.getMagicNum() != Global.MAGICNUM) {
+                if (opt.getMagicNum() != Constants.MAGICNUM) {
                     // 魔数不一致
                     log.severe("客户端请求出错，魔数不一致。");
                     socketChannel.close();
@@ -176,7 +177,10 @@ public class NIOServer {
                     System.out.println("服务器端接受客户端数据--:"+ opt.getMagicNum() + "-" + opt.getLength() + "=" + new String(buff.array()));
 
                     // 处理调用请求
-                    handleRequest();
+                    String error = handleReqTimeout();
+                    if (error != null) {
+                        packet.getHeader().setError(error);
+                    }
 
                     socketChannel.register(selector, SelectionKey.OP_WRITE);
                 }
@@ -208,8 +212,10 @@ public class NIOServer {
 
     /**
      * 处理服务方法调用请求。
+     *
+     * @return 在处理超时情况下返回错误信息。
      */
-    private void handleRequest() {
+    private String handleRequest() {
         Header header = packet.getHeader();
         // 获取服务名和方法名
         String serviceMethod = header.getServiceMethod();
@@ -239,6 +245,16 @@ public class NIOServer {
                 }
             }
         }
+        return null;
+    }
+
+    /**
+     * 服务调用请求添加超时处理。
+     *
+     * @return 超时处理错误信息。
+     */
+    public String handleReqTimeout() {
+        return TimeoutUtils.process(this::handleRequest, Constants.TIMEOUT);
     }
 
     /**
@@ -268,14 +284,14 @@ public class NIOServer {
      */
     private ByteBuffer createWBuffer() {
         // 将数据包进行编码
-        Codec codec = CodecBuilder.buildCodec(Global.APPLICATIONJSON);
+        Codec codec = CodecBuilder.buildCodec(Constants.APPLICATIONJSON);
         byte[] codecBytes = codec.encodePacket(packet);
 
         // 声明写入数据 buffer 并为之分配空间，包括 option 长度和编码后的 packet 长度。
-        ByteBuffer buffer = ByteBuffer.allocate(Global.OPTIONLENGTH + codecBytes.length);
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.OPTIONLENGTH + codecBytes.length);
 
         // 构造 Option
-        Option opt = new Option(Global.MAGICNUM, codecBytes.length, Global.APPLICATIONJSON);
+        Option opt = new Option(Constants.MAGICNUM, codecBytes.length, Constants.APPLICATIONJSON);
 
         // 写入数据
         buffer.put(opt.getMagicNumBytes());

@@ -9,7 +9,7 @@ public class ClientDemo {
     public static void main(String[] args) {
 
         Header header = new Header();
-        header.setServiceMethod("com.chionura.demo.ServiceDemo.print1");
+        header.setServiceMethod("com.chionura.demo.ServiceDemo.print");
         header.setArgs("abc", 123);
 
         NIOClient client;

@@ -1,6 +1,6 @@
 package com.chionura.codec;
 
-import com.chionura.common.Global;
+import com.chionura.common.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +22,7 @@ public class CodecBuilder {
      */
     static {
         codecMap = new HashMap<>();
-        codecMap.put(Global.APPLICATIONJSON, new JSONCodec());
+        codecMap.put(Constants.APPLICATIONJSON, new JSONCodec());
     }
 
     /**

@@ -72,6 +72,13 @@ public class Service {
         return method;
     }
 
+    /**
+     * 根据提供的方法名和参数列表判断方法是否可用。
+     *
+     * @param methodName 方法名
+     * @param args 参数列表
+     * @return 方法是否可用。
+     */
     public boolean isMethodAvailable(String methodName, Object... args) {
         Class<?>[] argsType = this.getArgsType(args);
         Method method = this.getMethod(methodName, argsType);
@@ -124,20 +131,5 @@ public class Service {
      */
     public String getServiceName() {
         return serviceName;
-    }
-
-    public static void main(String[] args) {
-//        Service service = new Service("com.chionura.demo.ServiceDemo");
-//        if (service.classIsAvailable()) {
-//            service.newService();
-//        }
-//
-//        System.out.println(service.call("print", "abc", 123));
-        String serviceMethod = "abc.c.d.e";
-        String service = serviceMethod.substring(0, serviceMethod.lastIndexOf("."));
-        String method = serviceMethod.substring(serviceMethod.lastIndexOf(".") + 1);
-
-        System.out.println(service);
-        System.out.println(method);
     }
 }

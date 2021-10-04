@@ -2,7 +2,7 @@ package com.chionura.client;
 
 import com.chionura.codec.Codec;
 import com.chionura.codec.CodecBuilder;
-import com.chionura.common.Global;
+import com.chionura.common.Constants;
 import com.chionura.packet.Header;
 import com.chionura.packet.Option;
 import com.chionura.packet.Packet;
@@ -67,6 +67,7 @@ public class NIOClient {
     /**
      * 客户端远程调用方法，用于发送请求。
      *
+     * @param header 请求头
      * @throws IOException IO Exception
      */
     public Object call(Header header) throws IOException {
@@ -132,12 +133,11 @@ public class NIOClient {
             socketChannel = (SocketChannel) selectionKey.channel();
 
             // 定义读取 Option 的 ByteBuffer 对象，且长度固定。
-            ByteBuffer readBuffer = ByteBuffer.allocate(Global.OPTIONLENGTH);
+            ByteBuffer readBuffer = ByteBuffer.allocate(Constants.OPTIONLENGTH);
 
             // 读取服务器发送来的数据到缓冲区中。
             // 读取 Option，并记录读取长度。
             int optCount = socketChannel.read(readBuffer);
-            System.out.println(optCount);
 
             // 当服务端关闭时，读取出错且读取的长度为 -1
             if (optCount == -1) {
@@ -149,7 +149,7 @@ public class NIOClient {
                 // 根据 ByteBuffer 中读取的数据构造 Option 实例。
                 Option option = readOption(readBuffer.array());
 
-                if (option.getMagicNum() != Global.MAGICNUM) {
+                if (option.getMagicNum() != Constants.MAGICNUM) {
                     log.severe("服务端魔数错误，调用失败。");
                 } else {
                     // 根据获取的数据包长度读取数据包
@@ -168,6 +168,7 @@ public class NIOClient {
                     Codec codec = CodecBuilder.buildCodec(option.getCodecType());
                     Packet packet = codec.decodePacket(buff.array());
 
+                    // 处理响应
                     handleResponse(packet);
 
                     System.out.println("body:" + packet.getBody());
@@ -201,6 +202,11 @@ public class NIOClient {
         return new Option(magicNum, packetLen, codecType);
     }
 
+    /**
+     * 处理服务端响应。
+     *
+     * @param packet 数据包
+     */
     private void handleResponse(Packet packet) {
         if (packet.getHeader().getError() != null) {
             log.severe(packet.getHeader().getError());
@@ -208,7 +214,6 @@ public class NIOClient {
             result = packet.getBody();
         }
     }
-
 
     /**
      * 向服务端发送数据。
@@ -240,14 +245,14 @@ public class NIOClient {
         packet.setHeader(header);
 
         // 将数据包进行编码
-        Codec codec = CodecBuilder.buildCodec(Global.APPLICATIONJSON);
+        Codec codec = CodecBuilder.buildCodec(Constants.APPLICATIONJSON);
         byte[] codecBytes = codec.encodePacket(packet);
 
         // 声明写入数据 buffer 并为之分配空间，包括 option 长度和编码后的 packet 长度。
-        ByteBuffer buffer = ByteBuffer.allocate(Global.OPTIONLENGTH + codecBytes.length);
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.OPTIONLENGTH + codecBytes.length);
 
         // 构造 Option
-        Option opt = new Option(Global.MAGICNUM, codecBytes.length, Global.APPLICATIONJSON);
+        Option opt = new Option(Constants.MAGICNUM, codecBytes.length, Constants.APPLICATIONJSON);
 
         // 写入数据
         buffer.put(opt.getMagicNumBytes());
