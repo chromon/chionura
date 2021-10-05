@@ -48,7 +48,7 @@ public class NIOClient {
      * @param port 端口号。
      * @throws IOException IO Exception。
      */
-    public NIOClient(int port) throws IOException {
+    public NIOClient(String host, int port) throws IOException {
         selector = Selector.open();
 
         // 打开 socket 通道
@@ -59,7 +59,7 @@ public class NIOClient {
         socketChannel.register(selector, SelectionKey.OP_CONNECT);
         // 服务器地址
         InetSocketAddress SERVER_ADDRESS = new InetSocketAddress(
-                "localhost", port);
+                host, port);
         // 建立连接
         socketChannel.connect(SERVER_ADDRESS);
     }
@@ -263,6 +263,15 @@ public class NIOClient {
         System.out.println("客户端向服务器端发送数据--：" + new String(codecBytes));
 
         return buffer;
+    }
+
+    /**
+     * 判断当前客户端是否已连接。
+     *
+     * @return 是否连接。
+     */
+    public boolean isAvailable() {
+        return socketChannel.isConnected();
     }
 
     /**

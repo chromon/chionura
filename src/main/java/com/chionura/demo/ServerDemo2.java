@@ -6,7 +6,7 @@ import com.chionura.service.ServiceRegister;
 
 import java.io.IOException;
 
-public class ServerDemo {
+public class ServerDemo2 {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         Service service = new Service("com.chionura.demo.ServiceDemo");
@@ -16,7 +16,7 @@ public class ServerDemo {
 
         ServiceRegister.registerService(service);
 
-        NIOServer server = new NIOServer("localhost", 9911);
+        NIOServer server = new NIOServer("localhost", 9912);
         server.listen();
     }
 }

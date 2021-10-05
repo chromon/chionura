@@ -49,7 +49,7 @@ public class NIOServer {
      * @param port 服务端绑定端口。
      * @throws IOException IO 异常
      */
-    public NIOServer(int port) throws IOException {
+    public NIOServer(String host, int port) throws IOException {
         // 打开服务器套接字通道
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         // 服务器配置为非阻塞
@@ -57,7 +57,7 @@ public class NIOServer {
         // 检索与此通道关联的服务器套接字
         ServerSocket serverSocket = serverSocketChannel.socket();
         // 进行服务的绑定
-        serverSocket.bind(new InetSocketAddress(port));
+        serverSocket.bind(new InetSocketAddress(host, port));
 
         // 通过 open 方法找到 Selector
         selector = Selector.open();
