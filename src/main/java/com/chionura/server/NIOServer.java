@@ -46,6 +46,7 @@ public class NIOServer {
     /**
      * 构造服务端通道，等待连接事件。
      *
+     * @param host 主机地址。
      * @param port 服务端绑定端口。
      * @throws IOException IO 异常
      */
@@ -70,6 +71,8 @@ public class NIOServer {
 
     /**
      * 监听服务端事件
+     *
+     * @throws IOException IO Exception
      */
     @SuppressWarnings("InfiniteLoopStatement")
     public void listen() throws IOException {

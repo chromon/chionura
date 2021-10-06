@@ -45,6 +45,7 @@ public class NIOClient {
     /**
      * 通过端口号建立客户端连接。
      *
+     * @param host 服务主机地址。
      * @param port 端口号。
      * @throws IOException IO Exception。
      */
@@ -69,6 +70,7 @@ public class NIOClient {
      *
      * @param header 请求头
      * @throws IOException IO Exception
+     * @return 服务调用返回值。
      */
     public Object call(Header header) throws IOException {
         // 判断一次 RPC 请求是否完成，包括发送和接收数据。
