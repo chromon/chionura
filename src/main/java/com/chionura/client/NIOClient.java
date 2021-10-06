@@ -260,7 +260,7 @@ public class NIOClient {
         buffer.put(opt.getCodecType());
         buffer.put(codecBytes);
 
-        System.out.println("客户端向服务器端发送数据--：" + new String(codecBytes));
+        log.info("客户端向服务器端发送数据--：" + new String(codecBytes));
 
         return buffer;
     }

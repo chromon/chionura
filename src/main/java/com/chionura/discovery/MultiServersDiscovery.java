@@ -18,13 +18,19 @@ public class MultiServersDiscovery implements Discovery {
     /**
      * 服务实例列表。
      */
-    private String[] servers;
+    public String[] servers;
 
     /**
      * 记录轮询算法（Round Robin）轮询到的位置，
      * 初始化时随机值，避免每次从 0 开始。
      */
     private int index;
+
+    public MultiServersDiscovery() {
+        this.servers = new String[0];
+        this.random = new Random();
+        this.index = random.nextInt(Integer.MAX_VALUE - 1);
+    }
 
     /**
      * 构造实例，并使用随机值初始化 index。
@@ -69,6 +75,8 @@ public class MultiServersDiscovery implements Discovery {
     public synchronized String get(int selectMode) {
 
         int len = this.servers.length;
+        System.out.println(len);
+        System.out.println(Arrays.toString(this.servers));
 
         if (len == 0) {
             return "RPC 服务发现：没有可用的服务实例！";

@@ -4,7 +4,9 @@ import com.chionura.client.LBClient;
 import com.chionura.client.NIOClient;
 import com.chionura.common.Constants;
 import com.chionura.discovery.MultiServersDiscovery;
+import com.chionura.discovery.RegistryDiscovery;
 import com.chionura.packet.Header;
+import com.chionura.registry.Registry;
 
 import java.io.IOException;
 
@@ -29,8 +31,12 @@ public class ClientDemo {
 //        }
 
         // 支持负载均衡客户端
-        MultiServersDiscovery d = new MultiServersDiscovery(
-                new String[]{"localhost:9911", "localhost:9912"});
+//        MultiServersDiscovery d = new MultiServersDiscovery(
+//                new String[]{"localhost:9911", "localhost:9912"});
+
+        // 使用注册中心的客户端
+        String registryAddr = "http://localhost:8001/_rpc_/registry";
+        RegistryDiscovery d = new RegistryDiscovery(registryAddr, 0);
         LBClient client = new LBClient(d, Constants.RANDOMSELECT);
         try {
             String result = (String) client.call(header);

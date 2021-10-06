@@ -299,7 +299,7 @@ public class NIOServer {
         buffer.put(opt.getCodecType());
         buffer.put(codecBytes);
 
-        System.out.println("服务端向客户端发送数据--：" + new String(codecBytes));
+        log.info("服务端向客户端发送数据--：" + new String(codecBytes));
 
         return buffer;
     }
